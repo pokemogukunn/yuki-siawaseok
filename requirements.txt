@@ -1,4 +1,4 @@
 jinja2
 requests
-flask
+fastapi
 uvicorn
