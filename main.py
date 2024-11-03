@@ -1,69 +1,44 @@
-from flask import Flask, render_template, request
+# main.py
+
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 import requests
 
-app = Flask(__name__)
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
-# InvidiousインスタンスのURL
-BASE_URL = "https://inv.nadeko.net/api/v1"
+# ホームページ
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
-# ホームページのルート
-@app.route("/")
-def index():
-    return render_template("index.html")
+# /home に対応するページ
+@app.get("/home", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
 
-# ホームのルート
-@app.route("/home")
-def home():
-    return render_template("home.html")
-    
-# 動画ページのルート
-@app.route("/watch")
-def watch():
-    video_id = request.args.get("v")
-    if not video_id:
-        return "動画IDが指定されていません", 400
+# 検索機能 (例: /search?q=キーワード)
+@app.get("/search", response_class=HTMLResponse)
+async def search(request: Request, q: str):
+    # Invidious API を利用して検索
+    response = requests.get(f"https://inv.nadeko.net/api/v1/search?q={q}")
+    results = response.json()
+    return templates.TemplateResponse("search.html", {"request": request, "results": results})
 
-    response = requests.get(f"{BASE_URL}/videos/{video_id}")
-    if response.status_code == 200:
-        video_data = response.json()
-        
-        # ストリームURLの取得
-        stream_url = None
-        for stream in video_data.get("adaptiveFormats", []):
-            if "url" in stream:
-                stream_url = stream["url"]
-                break
-        
-        if not stream_url:
-            return "ストリームURLが見つかりません", 404
+# 動画ページ (例: /watch?v=VIDEO_ID)
+@app.get("/watch", response_class=HTMLResponse)
+async def watch(request: Request, v: str):
+    # Invidious API を利用して動画情報を取得
+    response = requests.get(f"https://inv.nadeko.net/api/v1/videos/{v}")
+    video_data = response.json()
+    return templates.TemplateResponse("video.html", {"request": request, "video_data": video_data})
 
-        return render_template("video.html", video=video_data, stream_url=stream_url)
-    else:
-        return "動画が見つかりません", 404
+# チャンネルページ (例: /channel/CHANNEL_ID)
+@app.get("/channel/{channel_id}", response_class=HTMLResponse)
+async def channel(request: Request, channel_id: str):
+    # Invidious API を利用してチャンネル情報を取得
+    response = requests.get(f"https://inv.nadeko.net/api/v1/channels/{channel_id}")
+    channel_data = response.json()
+    return templates.TemplateResponse("channel.html", {"request": request, "channel_data": channel_data})
 
-# チャンネルページのルート
-@app.route("/channel/<channel_id>")
-def channel(channel_id):
-    response = requests.get(f"{BASE_URL}/channels/{channel_id}")
-    if response.status_code == 200:
-        channel_data = response.json()
-        return render_template("channel.html", channel=channel_data)
-    else:
-        return "チャンネルが見つかりません", 404
-
-# 検索ページのルート
-@app.route("/search")
-def search():
-    query = request.args.get("q")
-    if not query:
-        return "検索ワードが指定されていません", 400
-
-    response = requests.get(f"{BASE_URL}/search", params={"q": query})
-    if response.status_code == 200:
-        search_results = response.json()
-        return render_template("search.html", results=search_results, query=query)
-    else:
-        return "検索に失敗しました", 500
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
