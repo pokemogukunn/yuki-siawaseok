@@ -2,7 +2,7 @@
 <html lang="ja">
 
 <head>
-    <title>連番を簡単に生成！！</title>
+    <title>{{ video_data.title }}</title>
     <link rel="stylesheet" href="/css/pure-min.css">
     <link rel="stylesheet" href="/css/grids-responsive-min.css">
     <link rel="stylesheet" href="/css/ionicons.min.css">
@@ -31,21 +31,18 @@
                 </div>
             </div>
             <div id="player-container" class="h-box">
-                <video style="outline:none;width:100%;background-color:#000;" playsinline="" poster="{% if proxy == "True" %}/thumbnail?v={{ videoid }}{% else %}https://img.youtube.com/vi/{{ videoid }}/0.jpg{% endif
-                    %}" id="player" class="on-video_player video-js player-style-invidious" controls=""
+                <video style="outline:none;width:100%;background-color:#000;" playsinline="" poster="https://img.youtube.com/vi/{{ videoid }}/0.jpg" id="player" class="on-video_player video-js player-style-invidious" controls=""
                     loadedmetadata="settime()" loop="">
-                    {% for videourl in videourls%}
-                    <source src="{{videourl}}">
-                    {% endfor %}
+                    <source src="{{ video_data.streaming_url }}">
                 </video>
                 </video>
             </div>
             <div class="h-box">
-                <h1>{{ videotitle }}</h1>
+                <h1>{{ video_data.title }}</h1>
             </div>
             <div class="pure-g">
                 <div class="pure-u-1 pure-u-lg-1-5">
-                    <a href="{{ videourls[0] }}" target="_blank">ダウンロード</a><br>
+                    <a href="{{ video_data.streaming_url }}" target="_blank">ダウンロード</a><br>
                     <a
                         href="javascript:{navigator.share({title: '動画を共有',text: '{{videotitle}}',url: location.protocol+'//'+document.domain+'/watch?v={{ videoid }}'+'&t='+Math.floor(document.getElementById('player').currentTime),})}">現時点の動画を共有</a><br>
                     <a
@@ -54,12 +51,12 @@
                 </div>
                 <div class="pure-u-1 pure-u-lg-3-5">
                     <div class="h-box">
-                        <a href="/channel/{{authorid}}" style="display:block;width:fit-content;width:-moz-fit-content">
+                        <a href="/channel/{{ video_data.authorId }}" style="display:block;width:fit-content;width:-moz-fit-content">
                             <div class="channel-profile">
 
                                 <img src="{{authoricon}}">
 
-                                <span id="channel-name">{{ author }}</span>
+                                {{ video_data.description }}
                             </div>
                         </a>
                         <div id="description-box">
