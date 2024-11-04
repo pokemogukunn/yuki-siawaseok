@@ -28,6 +28,15 @@ def fetch_data_from_invidious(endpoint: str):
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+@app.get("/search", response_class=HTMLResponse)
+async def search(request: Request, q: str):
+    """検索機能エンドポイント"""
+    try:
+        search_results = fetch_data_from_invidious(f"search?q={q}")
+    except ConnectionError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    
+    return templates.TemplateResponse("search.html", {"request": request, "query": q, "results": search_results})
 
 # チャンネル情報のエンドポイント
 @app.get("/channel/{channel_id}", response_class=HTMLResponse)
