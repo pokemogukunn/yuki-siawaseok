@@ -27,9 +27,9 @@ def fetch_data_from_invidious(endpoint: str):
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-    
-    @app.get("/home", response_class=HTMLResponse)
-async def index(request: Request):
+
+@app.get("/home", response_class=HTMLResponse)
+async def home(request: Request):  # 関数名を変更することをお勧めします
     return templates.TemplateResponse("home.html", {"request": request})
 
 @app.get("/search", response_class=HTMLResponse)
