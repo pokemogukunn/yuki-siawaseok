@@ -24,6 +24,11 @@ def fetch_data_from_invidious(endpoint: str):
             print(f"Failed to connect to {api_base}, trying next instance...")
     raise ConnectionError("すべてのInvidiousインスタンスで接続に失敗しました")
 
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
 # チャンネル情報のエンドポイント
 @app.get("/channel/{channel_id}", response_class=HTMLResponse)
 async def channel(request: Request, channel_id: str):
