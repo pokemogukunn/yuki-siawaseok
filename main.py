@@ -8,9 +8,9 @@ templates = Jinja2Templates(directory="templates")
 
 # 複数の Invidious インスタンスをリスト化
 API_INSTANCES = [
-    "https://invidious.instance1.com/api/v1",
-    "https://invidious.instance2.com/api/v1",
-    "https://invidious.instance3.com/api/v1"
+    "https://inv.nadeko.net/api/v1",
+    "https://youtube.privacyplz.org/api/v1",
+    "https://invidious.nerdvpn.de/api/v1"
 ]
 
 def fetch_data_from_invidious(endpoint: str):
