@@ -1,6 +1,4 @@
-# main.py
-
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 import requests
@@ -8,37 +6,38 @@ import requests
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-# ホームページ
-@app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+# 複数の Invidious インスタンスをリスト化
+API_INSTANCES = [
+    "https://invidious.instance1.com/api/v1",
+    "https://invidious.instance2.com/api/v1",
+    "https://invidious.instance3.com/api/v1"
+]
 
-# /home に対応するページ
-@app.get("/home", response_class=HTMLResponse)
-async def home(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
+def fetch_data_from_invidious(endpoint: str):
+    """Invidiousインスタンスのリストから順に試してデータを取得"""
+    for api_base in API_INSTANCES:
+        try:
+            response = requests.get(f"{api_base}/{endpoint}", timeout=5)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException:
+            print(f"Failed to connect to {api_base}, trying next instance...")
+    raise ConnectionError("すべてのInvidiousインスタンスで接続に失敗しました")
 
-# 検索機能 (例: /search?q=キーワード)
-@app.get("/search", response_class=HTMLResponse)
-async def search(request: Request, q: str):
-    # Invidious API を利用して検索
-    response = requests.get(f"https://inv.nadeko.net/api/v1/search?q={q}")
-    results = response.json()
-    return templates.TemplateResponse("search.html", {"request": request, "results": results})
-
-# 動画ページ (例: /watch?v=VIDEO_ID)
-@app.get("/watch", response_class=HTMLResponse)
-async def watch(request: Request, v: str):
-    # Invidious API を利用して動画情報を取得
-    response = requests.get(f"https://inv.nadeko.net/api/v1/videos/{v}")
-    video_data = response.json()
-    return templates.TemplateResponse("video.html", {"request": request, "video_data": video_data})
-
-# チャンネルページ (例: /channel/CHANNEL_ID)
+# チャンネル情報のエンドポイント
 @app.get("/channel/{channel_id}", response_class=HTMLResponse)
 async def channel(request: Request, channel_id: str):
-    # Invidious API を利用してチャンネル情報を取得
-    response = requests.get(f"https://inv.nadeko.net/api/v1/channels/{channel_id}")
-    channel_data = response.json()
+    try:
+        channel_data = fetch_data_from_invidious(f"channels/{channel_id}")
+    except ConnectionError as e:
+        raise HTTPException(status_code=503, detail=str(e))
     return templates.TemplateResponse("channel.html", {"request": request, "channel_data": channel_data})
 
+# 動画情報のエンドポイント
+@app.get("/watch", response_class=HTMLResponse)
+async def watch(request: Request, v: str):
+    try:
+        video_data = fetch_data_from_invidious(f"videos/{v}")
+    except ConnectionError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    return templates.TemplateResponse("video.html", {"request": request, "video_data": video_data})
