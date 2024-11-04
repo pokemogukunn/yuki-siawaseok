@@ -25,14 +25,70 @@
                     </form>
                 </div>
             </div>
-<ul>
+
+            
+            <div class="pure-g">
+                {% for result in results %}
+                <div class="pure-u-1 pure-u-md-1-4">
+                    <div class="h-box">
+                        {% if result["type"] == "video" %}
+                        <a style="width:100%" href="/watch?v={{ result.videoId }}">
+                            <div class="thumbnail">
+                                <img loading="lazy" class="thumbnail" src="https://img.youtube.com/vi/{{ result.videoId }}/0.jpg" onerror="document.cookie = 'proxy=True;max-age=2592000;';">
+                                <p class="length">{{result["length"]}}</p>
+                            </div>
+                            <p dir="auto">{{ result.title }}</p>
+                        </a>
+                        <div class="video-card-row flexible">
+                            <a href="/channel/{{result['authorId']}}">{{result["author"]}}</a>
+                        </div>
+                        <div class="video-card-row flexible">
+                            <div class="flex-left">
+                                    <p class="video-data" dir="auto">{{result["published"]}}</p>
+                            </div>
+                        </div>
+                        {% elif result["type"] == "channel" %}
+                            <a href="/channel/{{ result.authorId }}">
+                                    <center>
+                                        <img loading="lazy" tabindex="-1" style="width:56.25%" src="{{result["thumbnail"]}}">
+                                    </center>
+                                <p dir="auto">{{ result.author }}</p>
+                            </a>
+                        {% elif result["type"] == "playlist" %}
+                        <a style="width:100%" href="/playlist?list={{result["id"]}}">
+                
+                            <div class="thumbnail">
+                                <img loading="lazy" tabindex="-1" class="thumbnail" src="{% if proxy == "True" %}/thumbnail?v={{ result['thumbnail'] }}{% else %}https://img.youtube.com/vi/{{ result['thumbnail'] }}/0.jpg{% endif %}">
+                                <p class="length">{{result["count"]}}個の動画</p>
+                            </div>
+                        <p dir="auto">{{result["title"]}}</p>
+                    </a>
+                        {% endif %}
+                    </div>
+                </div>{% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="pure-g h-box">
+        <div class="pure-u-1 pure-u-lg-1-5">
+        </div>
+        <div class="pure-u-1 pure-u-lg-3-5"></div>
+        <div class="pure-u-1 pure-u-lg-1-5" style="text-align:right">
+
+            <a href="{{next}}">
+                次のページ
+            </a>
+        </div>
+    </div>
+    
+<!--<ul>
         {% for result in results %}
             <li>
                 <a href="/watch?v={{ result.videoId }}">{{ result.title }}</a>
                 <a href="/channel/{{ result.authorId }}">{{ result.author }}</a>
             </li>
         {% endfor %}
-    </ul>
+    </ul>-->
         </div>
     </div>
     <div class="pure-g h-box">
